@@ -26,7 +26,7 @@ class ViewController: UIViewController {
     func createAnim() -> CABasicAnimation {
         let animation = CABasicAnimation(keyPath:"position.y")
         
-        animation.fromValue = self.greybox.frame.origin.y;
+        animation.fromValue = self.greybox.layer.presentation()?.frame.origin.y;
         animation.toValue = 0
         animation.duration = 2;
         return animation
@@ -54,7 +54,8 @@ class ViewController: UIViewController {
         groupAnimation.delegate = self // this delegate will be called.
         
         self.greybox.layer.add(groupAnimation, forKey: "Custom Animation")
-        self.greybox.layer.speed = 1.3
+
+        self.greybox.layer.speed = 1
     }
     
     override func didReceiveMemoryWarning() {
