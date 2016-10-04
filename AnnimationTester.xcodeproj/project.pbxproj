@@ -96,7 +96,7 @@
 				TargetAttributes = {
 					2B0DA5681DA3408E00CD4DA0 = {
 						CreatedOnToolsVersion = 8.0;
-						DevelopmentTeam = 7X5558H968;
+						DevelopmentTeam = 2Y24DD48QA;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -261,7 +261,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = 7X5558H968;
+				DEVELOPMENT_TEAM = 2Y24DD48QA;
 				INFOPLIST_FILE = AnnimationTester/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.sky4studios.AnnimationTester;
@@ -274,7 +274,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = 7X5558H968;
+				DEVELOPMENT_TEAM = 2Y24DD48QA;
 				INFOPLIST_FILE = AnnimationTester/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.sky4studios.AnnimationTester;
@@ -302,6 +302,7 @@
 				2B0DA57D1DA3408E00CD4DA0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
