@@ -23,6 +23,19 @@ class ViewController: UIViewController {
         self.view.addGestureRecognizer(self.panGesture)
     }
 
+    @IBAction func startAction(_ sender: AnyObject) {
+
+        let animation = CABasicAnimation(keyPath:"position.y")
+            
+        animation.fromValue = self.greybox.frame.origin.y;
+        animation.toValue = 0
+        
+        animation.duration = 5;
+        animation.isRemovedOnCompletion = true;
+
+        self.greybox.layer.add(animation, forKey: "Custom Animation")
+        self.greybox.layer.speed = -1
+    }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
