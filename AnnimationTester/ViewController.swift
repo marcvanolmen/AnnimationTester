@@ -27,7 +27,6 @@ class ViewController: UIViewController {
     fileprivate var cachedFromOffset: CGFloat {
         if self.fromOffset == 0 {
             self.fromOffset = max(self.greybox.layer.presentation()?.frame.origin.y ?? self.toOffset,self.toOffset)
-        
         }
         return self.fromOffset
     }
@@ -77,7 +76,6 @@ class ViewController: UIViewController {
             self.greybox.layer.speed = 1.0
             self.panGesture.isEnabled = false
             })
-
     }
 }
 
@@ -127,7 +125,6 @@ extension ViewController: UIGestureRecognizerDelegate {
             let offset = gesture.translation(in: self.view)
             
             var offsetProgress = max(0,-offset.y / (self.cachedFromOffset - self.toOffset))
-            
             offsetProgress = min(1.0,offsetProgress)
 
             self.greybox.layer.timeOffset = self.animationDuration * CFTimeInterval(offsetProgress)
@@ -135,13 +132,8 @@ extension ViewController: UIGestureRecognizerDelegate {
         case .failed, .cancelled,.ended:
             self.autoBeginTime = CACurrentMediaTime()
             self.autoTimeOffset = self.greybox.layer.timeOffset
-            if self.greybox.layer.timeOffset < self.animationDuration / 2  {
-                // move backward
-                self.autoReverseMode = true
-            } else {
-                // move forward
-                self.autoReverseMode = false
-            }
+            self.autoVelocity = 2.0
+            self.autoReverseMode = self.greybox.layer.timeOffset < self.animationDuration / 2
             self.panGesture.isEnabled = false
             self.autoDisplayLink = CADisplayLink(target: self, selector: #selector(autoAnimateLoop))
             self.autoDisplayLink.add(to: RunLoop.main, forMode: RunLoopMode.commonModes)
