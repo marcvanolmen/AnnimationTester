@@ -101,6 +101,7 @@ extension ViewController: UIGestureRecognizerDelegate {
             // again. This will reset the animation also...
 //            self.greybox.layer.removeAnimation(forKey: self.animationReferenceID)
             print("--removed auto animation--")
+            return
         }
 
         let elapsedTime = (CACurrentMediaTime() - self.autoBeginTime) * self.autoVelocity
