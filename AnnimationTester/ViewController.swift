@@ -46,7 +46,9 @@ class ViewController: UIViewController {
     }
 
     @IBAction func resetAction(_ sender: AnyObject) {
-        self.greybox.layer.removeAllAnimations()
+        self.greybox.layer.removeAnimation(forKey: self.animationReferenceID)
+        self.greybox.layer.timeOffset = 0
+        self.greybox.layer.speed = 1.0
         self.view.setNeedsLayout()
     }
     
@@ -82,7 +84,7 @@ extension ViewController: UIGestureRecognizerDelegate {
             self.panGesture.isEnabled = true
             // I needed to remove this because gave issues in Simulator, if I drag
             // again. This will reset the animation also...
-            self.greybox.layer.removeAnimation(forKey: self.animationReferenceID)
+//            self.greybox.layer.removeAnimation(forKey: self.animationReferenceID)
             print("--removed auto animation--")
         }
 
@@ -108,12 +110,12 @@ extension ViewController: UIGestureRecognizerDelegate {
             break
         case .changed:
             let offset = gesture.translation(in: self.view)
-            let temp = max(self.toOffset, self.fromOffset + offset.y)
-            let transitionProgress = min(temp, self.fromOffset)
             
-            let progress = (self.fromOffset == self.toOffset) ? 1.0 : 1.0 - min(1.0,(transitionProgress - self.toOffset) / (self.fromOffset - self.toOffset))
+            var offsetProgress = max(0,-offset.y / (self.fromOffset - self.toOffset))
+            
+            offsetProgress = min(1.0,offsetProgress)
 
-            self.greybox.layer.timeOffset = self.animationDuration * CFTimeInterval(progress)
+            self.greybox.layer.timeOffset = self.animationDuration * CFTimeInterval(offsetProgress)
             break
         case .failed, .cancelled,.ended:
             self.autoBeginTime = CACurrentMediaTime()
