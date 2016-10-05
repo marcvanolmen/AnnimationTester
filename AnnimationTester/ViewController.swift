@@ -10,8 +10,12 @@ import UIKit
 
 class ViewController: UIViewController {
     
-    private var panGesture: UIPanGestureRecognizer!
     @IBOutlet weak var greybox: UIView!
+
+    private var panGesture: UIPanGestureRecognizer!
+    fileprivate let animationDuration:CFTimeInterval = 2.0
+    fileprivate var fromOffset: CGFloat = 0.0
+    fileprivate var toOffset: CGFloat = 60.0
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,19 +23,23 @@ class ViewController: UIViewController {
     
     
         self.panGesture = UIPanGestureRecognizer(target:self, action:#selector(onPanUpdate))
-        self.panGesture.delegate = self;
+        self.panGesture.delegate = self
         self.view.addGestureRecognizer(self.panGesture)
     }
     
     func createAnim() -> CABasicAnimation {
         let animation = CABasicAnimation(keyPath:"position.y")
         
-        animation.fromValue = self.greybox.layer.presentation()?.frame.origin.y;
-        animation.toValue = 0
-        animation.duration = 2;
+        animation.fromValue = self.fromOffset
+        animation.toValue = self.toOffset
+        animation.duration = 2
         return animation
     }
 
+    @IBAction func resetAction(_ sender: AnyObject) {
+        self.greybox.layer.removeAllAnimations()
+        self.view.setNeedsLayout()
+    }
     
     @IBAction func startAction(_ sender: AnyObject) {
         // https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/CoreAnimation_guide/CreatingBasicAnimations/CreatingBasicAnimations.html
@@ -40,13 +48,15 @@ class ViewController: UIViewController {
  If you want to chain two animations together so that one starts when the other finishes, do not use animation notifications. Instead, use the beginTime property of your animation objects to start each one at the desired time. To chain two animations together, set the start time of the second animation to the end time of the first animation. For more information about animation and timing values, see Customizing the Timing of an Animation.
  
 */
+        self.fromOffset  = max(self.greybox.layer.presentation()?.frame.origin.y ?? self.toOffset,self.toOffset)
+
         let animation = self.createAnim()
         animation.beginTime = 0
         animation.delegate = self // This is not called
         
         let animation2 = self.createAnim()
-        animation2.beginTime = 2.0;
-        animation2.speed = -1;
+        animation2.beginTime = self.animationDuration
+        animation2.speed = -1
 
         let groupAnimation = CAAnimationGroup()
         groupAnimation.duration = 4
@@ -82,13 +92,39 @@ extension ViewController: UIGestureRecognizerDelegate {
     func onPanUpdate(_ gesture: UIPanGestureRecognizer) {
         switch (gesture.state) {
         case .began:
-            NSLog("begin")
+            self.fromOffset  = max(self.greybox.layer.presentation()?.frame.origin.y ?? self.toOffset,self.toOffset)
+            let animation = self.createAnim()
+
+            self.greybox.layer.add(animation, forKey: "Custom Animation")
+            self.greybox.layer.speed = 0
             break
         case .changed:
-            NSLog("changed")
+            let offset = gesture.translation(in: self.view)
+            let temp = max(self.toOffset, self.fromOffset + offset.y)
+            let transitionProgress = min(temp, self.fromOffset)
+            
+            let progress = (self.fromOffset == self.toOffset) ? 1.0 : 1.0 - min(1.0,(transitionProgress - self.toOffset) / (self.fromOffset - self.toOffset))
+
+            self.greybox.layer.timeOffset = self.animationDuration * CFTimeInterval(progress)
             break
         case .failed, .cancelled,.ended:
-            NSLog("end")
+            if self.greybox.layer.timeOffset < self.animationDuration {
+                guard let presentationLayer = self.greybox.layer.presentation() else { break }
+                
+                
+                let animation = self.createAnim()
+                let olderTimeOffset = self.greybox.layer.timeOffset
+                
+                animation.delegate = self
+                animation.fromValue = presentationLayer.frame.origin.y
+                animation.duration = self.animationDuration - olderTimeOffset
+                self.greybox.layer.position.y = self.toOffset
+                
+                //            self.greybox.layer.frame = presentationLayer.frame
+                self.greybox.layer.add(animation, forKey: "Custom Animation")
+                self.greybox.layer.speed = 1
+                
+            }
             break
         default:
             break

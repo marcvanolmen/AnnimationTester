@@ -26,9 +26,17 @@
                                 </constraints>
                             </view>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="WK6-Se-bFp">
-                                <state key="normal" title="Start"/>
+                                <state key="normal" title="Auto Run"/>
                                 <connections>
                                     <action selector="startAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="uLj-WZ-miu"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="J1F-co-w2W">
+                                <frame key="frameInset" minX="283" minY="629" width="39" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Reset"/>
+                                <connections>
+                                    <action selector="resetAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="ETi-03-gOh"/>
                                 </connections>
                             </button>
                         </subviews>
