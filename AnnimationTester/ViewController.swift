@@ -40,7 +40,7 @@ class ViewController: UIViewController {
         animation.fromValue = self.fromOffset
         animation.toValue = self.toOffset
         animation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
-        animation.duration = 2
+        animation.duration = self.animationDuration
 
         return animation
     }
@@ -51,32 +51,24 @@ class ViewController: UIViewController {
     }
     
     @IBAction func startAction(_ sender: AnyObject) {
-        // https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/CoreAnimation_guide/CreatingBasicAnimations/CreatingBasicAnimations.html
-        
-        /*
- If you want to chain two animations together so that one starts when the other finishes, do not use animation notifications. Instead, use the beginTime property of your animation objects to start each one at the desired time. To chain two animations together, set the start time of the second animation to the end time of the first animation. For more information about animation and timing values, see Customizing the Timing of an Animation.
- 
-*/
         self.fromOffset  = max(self.greybox.layer.presentation()?.frame.origin.y ?? self.toOffset,self.toOffset)
 
         let animation = self.createAnim()
         animation.autoreverses = true
-        animation.speed = 1.0
+        animation.delegate = self
         
         self.greybox.layer.timeOffset = 0
         self.greybox.layer.add(animation, forKey: self.animationReferenceID)
-    }
-    
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+        self.greybox.layer.speed = 1.0
+        self.panGesture.isEnabled = false
     }
 }
 
 extension ViewController: CAAnimationDelegate {
     
     public func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
-        print(")animation finsihed")
+        print("--animation finsihed--")
+        self.panGesture.isEnabled = true
     }
     
 }
@@ -91,7 +83,10 @@ extension ViewController: UIGestureRecognizerDelegate {
             self.greybox.layer.timeOffset <= 0 {
             self.autoDisplayLink.remove(from: RunLoop.main, forMode: RunLoopMode.commonModes)
             self.panGesture.isEnabled = true
+            // I needed to remove this because gave issues in Simulator, if I drag
+            // again. This will reset the animation also...
             self.greybox.layer.removeAnimation(forKey: self.animationReferenceID)
+            print("--removed auto animation--")
         }
 
         let elapsedTime = (CACurrentMediaTime() - self.autoBeginTime) * self.autoVelocity
