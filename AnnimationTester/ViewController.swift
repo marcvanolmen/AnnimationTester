@@ -12,16 +12,23 @@ class ViewController: UIViewController {
     
     @IBOutlet weak var greybox: UIView!
 
-    private var panGesture: UIPanGestureRecognizer!
+    fileprivate var panGesture: UIPanGestureRecognizer!
     fileprivate let animationDuration:CFTimeInterval = 2.0
+    fileprivate let animationReferenceID = "Custom Interactive Animation"
     fileprivate var fromOffset: CGFloat = 0.0
     fileprivate var toOffset: CGFloat = 60.0
-    
+
+    fileprivate var autoBeginTime: CFTimeInterval = 0.0
+    fileprivate var autoTimeOffset: CFTimeInterval = 0.0
+    fileprivate var autoReverseMode: Bool = false
+    fileprivate var autoVelocity: CFTimeInterval = 1.0
+    fileprivate var autoDisplayLink: CADisplayLink!
+
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
     
-    
+
         self.panGesture = UIPanGestureRecognizer(target:self, action:#selector(onPanUpdate))
         self.panGesture.delegate = self
         self.view.addGestureRecognizer(self.panGesture)
@@ -32,7 +39,9 @@ class ViewController: UIViewController {
         
         animation.fromValue = self.fromOffset
         animation.toValue = self.toOffset
+        animation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
         animation.duration = 2
+
         return animation
     }
 
@@ -51,21 +60,11 @@ class ViewController: UIViewController {
         self.fromOffset  = max(self.greybox.layer.presentation()?.frame.origin.y ?? self.toOffset,self.toOffset)
 
         let animation = self.createAnim()
-        animation.beginTime = 0
-        animation.delegate = self // This is not called
+        animation.autoreverses = true
+        animation.speed = 1.0
         
-        let animation2 = self.createAnim()
-        animation2.beginTime = self.animationDuration
-        animation2.speed = -1
-
-        let groupAnimation = CAAnimationGroup()
-        groupAnimation.duration = 4
-        groupAnimation.animations = [ animation, animation2]
-        groupAnimation.delegate = self // this delegate will be called.
-        
-        self.greybox.layer.add(groupAnimation, forKey: "Custom Animation")
-
-        self.greybox.layer.speed = 1
+        self.greybox.layer.timeOffset = 0
+        self.greybox.layer.add(animation, forKey: self.animationReferenceID)
     }
     
     override func didReceiveMemoryWarning() {
@@ -84,6 +83,23 @@ extension ViewController: CAAnimationDelegate {
 
 
 extension ViewController: UIGestureRecognizerDelegate {
+
+    
+    func autoAnimateLoop() {
+
+        if self.greybox.layer.timeOffset >= self.animationDuration ||
+            self.greybox.layer.timeOffset <= 0 {
+            self.autoDisplayLink.remove(from: RunLoop.main, forMode: RunLoopMode.commonModes)
+            self.panGesture.isEnabled = true
+            self.greybox.layer.removeAnimation(forKey: self.animationReferenceID)
+        }
+
+        let elapsedTime = (CACurrentMediaTime() - self.autoBeginTime) * self.autoVelocity
+
+        self.greybox.layer.timeOffset = self.autoReverseMode ?
+            max(self.autoTimeOffset - elapsedTime, 0.0) :
+            min(self.autoTimeOffset + elapsedTime, self.animationDuration)
+    }
     
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
@@ -94,8 +110,8 @@ extension ViewController: UIGestureRecognizerDelegate {
         case .began:
             self.fromOffset  = max(self.greybox.layer.presentation()?.frame.origin.y ?? self.toOffset,self.toOffset)
             let animation = self.createAnim()
-
-            self.greybox.layer.add(animation, forKey: "Custom Animation")
+            self.greybox.layer.timeOffset = 0
+            self.greybox.layer.add(animation, forKey: self.animationReferenceID)
             self.greybox.layer.speed = 0
             break
         case .changed:
@@ -108,23 +124,18 @@ extension ViewController: UIGestureRecognizerDelegate {
             self.greybox.layer.timeOffset = self.animationDuration * CFTimeInterval(progress)
             break
         case .failed, .cancelled,.ended:
-            if self.greybox.layer.timeOffset < self.animationDuration {
-                guard let presentationLayer = self.greybox.layer.presentation() else { break }
-                
-                
-                let animation = self.createAnim()
-                let olderTimeOffset = self.greybox.layer.timeOffset
-                
-                animation.delegate = self
-                animation.fromValue = presentationLayer.frame.origin.y
-                animation.duration = self.animationDuration - olderTimeOffset
-                self.greybox.layer.position.y = self.toOffset
-                
-                //            self.greybox.layer.frame = presentationLayer.frame
-                self.greybox.layer.add(animation, forKey: "Custom Animation")
-                self.greybox.layer.speed = 1
-                
+            self.autoBeginTime = CACurrentMediaTime()
+            self.autoTimeOffset = self.greybox.layer.timeOffset
+            if self.greybox.layer.timeOffset < self.animationDuration / 2  {
+                // move backward
+                self.autoReverseMode = true
+            } else {
+                // move forward
+                self.autoReverseMode = false
             }
+            self.panGesture.isEnabled = false
+            self.autoDisplayLink = CADisplayLink(target: self, selector: #selector(autoAnimateLoop))
+            self.autoDisplayLink.add(to: RunLoop.main, forMode: RunLoopMode.commonModes)
             break
         default:
             break
