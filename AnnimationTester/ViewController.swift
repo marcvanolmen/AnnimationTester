@@ -15,7 +15,7 @@ class ViewController: UIViewController {
     fileprivate var panGesture: UIPanGestureRecognizer!
     fileprivate let animationDuration:CFTimeInterval = 2.0
     fileprivate let animationReferenceID = "Custom Interactive Animation"
-    fileprivate var fromOffset: CGFloat = 0.0
+    private var fromOffset: CGFloat = 0.0
     fileprivate var toOffset: CGFloat = 60.0
 
     fileprivate var autoBeginTime: CFTimeInterval = 0.0
@@ -23,11 +23,21 @@ class ViewController: UIViewController {
     fileprivate var autoReverseMode: Bool = false
     fileprivate var autoVelocity: CFTimeInterval = 1.0
     fileprivate var autoDisplayLink: CADisplayLink!
-
+    
+    fileprivate var cachedFromOffset: CGFloat {
+        if self.fromOffset == 0 {
+            self.fromOffset = max(self.greybox.layer.presentation()?.frame.origin.y ?? self.toOffset,self.toOffset)
+        
+        }
+        return self.fromOffset
+    }
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
     
+        self.greybox.layer.anchorPoint = CGPoint(x: 0.5, y: 0.0)
 
         self.panGesture = UIPanGestureRecognizer(target:self, action:#selector(onPanUpdate))
         self.panGesture.delegate = self
@@ -37,7 +47,7 @@ class ViewController: UIViewController {
     fileprivate func createAnimation() -> CABasicAnimation {
         let animation = CABasicAnimation(keyPath:"position.y")
         
-        animation.fromValue = self.fromOffset
+        animation.fromValue = self.cachedFromOffset
         animation.toValue = self.toOffset
         animation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
         animation.duration = self.animationDuration
@@ -53,16 +63,21 @@ class ViewController: UIViewController {
     }
     
     @IBAction func startAction(_ sender: AnyObject) {
-        self.fromOffset  = max(self.greybox.layer.presentation()?.frame.origin.y ?? self.toOffset,self.toOffset)
-
-        let animation = self.createAnimation()
-        animation.autoreverses = true
-        animation.delegate = self
+        self.resetAction(sender)
         
-        self.greybox.layer.timeOffset = 0
-        self.greybox.layer.add(animation, forKey: self.animationReferenceID)
-        self.greybox.layer.speed = 1.0
-        self.panGesture.isEnabled = false
+        let dispatchTime: DispatchTime = DispatchTime.now() + Double(Int64(0.1 * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)
+
+        DispatchQueue.main.asyncAfter(deadline: dispatchTime, execute: {
+            let animation = self.createAnimation()
+            animation.autoreverses = true
+            animation.delegate = self
+            
+            self.greybox.layer.timeOffset = 0
+            self.greybox.layer.add(animation, forKey: self.animationReferenceID)
+            self.greybox.layer.speed = 1.0
+            self.panGesture.isEnabled = false
+            })
+
     }
 }
 
@@ -102,7 +117,6 @@ extension ViewController: UIGestureRecognizerDelegate {
     func onPanUpdate(_ gesture: UIPanGestureRecognizer) {
         switch (gesture.state) {
         case .began:
-            self.fromOffset  = max(self.greybox.layer.presentation()?.frame.origin.y ?? self.toOffset,self.toOffset)
             let animation = self.createAnimation()
             self.greybox.layer.timeOffset = 0
             self.greybox.layer.add(animation, forKey: self.animationReferenceID)
@@ -111,7 +125,7 @@ extension ViewController: UIGestureRecognizerDelegate {
         case .changed:
             let offset = gesture.translation(in: self.view)
             
-            var offsetProgress = max(0,-offset.y / (self.fromOffset - self.toOffset))
+            var offsetProgress = max(0,-offset.y / (self.cachedFromOffset - self.toOffset))
             
             offsetProgress = min(1.0,offsetProgress)
 
