@@ -95,7 +95,7 @@ extension ViewController: UIGestureRecognizerDelegate {
 
         if self.greybox.layer.timeOffset >= self.animationDuration ||
             self.greybox.layer.timeOffset <= 0 {
-            self.autoDisplayLink.remove(from: RunLoop.main, forMode: RunLoopMode.commonModes)
+            self.autoDisplayLink.invalidate()
             self.panGesture.isEnabled = true
             // I needed to remove this because gave issues in Simulator, if I drag
             // again. This will reset the animation also...
