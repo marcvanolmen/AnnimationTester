@@ -34,7 +34,7 @@ class ViewController: UIViewController {
         self.view.addGestureRecognizer(self.panGesture)
     }
     
-    func createAnim() -> CABasicAnimation {
+    fileprivate func createAnimation() -> CABasicAnimation {
         let animation = CABasicAnimation(keyPath:"position.y")
         
         animation.fromValue = self.fromOffset
@@ -53,7 +53,7 @@ class ViewController: UIViewController {
     @IBAction func startAction(_ sender: AnyObject) {
         self.fromOffset  = max(self.greybox.layer.presentation()?.frame.origin.y ?? self.toOffset,self.toOffset)
 
-        let animation = self.createAnim()
+        let animation = self.createAnimation()
         animation.autoreverses = true
         animation.delegate = self
         
@@ -70,12 +70,9 @@ extension ViewController: CAAnimationDelegate {
         print("--animation finsihed--")
         self.panGesture.isEnabled = true
     }
-    
 }
 
-
 extension ViewController: UIGestureRecognizerDelegate {
-
     
     func autoAnimateLoop() {
 
@@ -104,7 +101,7 @@ extension ViewController: UIGestureRecognizerDelegate {
         switch (gesture.state) {
         case .began:
             self.fromOffset  = max(self.greybox.layer.presentation()?.frame.origin.y ?? self.toOffset,self.toOffset)
-            let animation = self.createAnim()
+            let animation = self.createAnimation()
             self.greybox.layer.timeOffset = 0
             self.greybox.layer.add(animation, forKey: self.animationReferenceID)
             self.greybox.layer.speed = 0
@@ -136,6 +133,5 @@ extension ViewController: UIGestureRecognizerDelegate {
             break
         }
     }
-
 }
 
